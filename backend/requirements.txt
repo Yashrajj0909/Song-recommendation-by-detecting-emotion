@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+opencv-python
+fer
+spotipy
+python-dotenv
+websockets
+numpy
+tensorflow>=2.16.1
+mtcnn
+mediapipe

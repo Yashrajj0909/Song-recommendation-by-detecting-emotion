@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodMelody — Emotion-Based Music</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="mood-melody">
+    <!-- Top Environment Bar -->
+    <header class="top-environment-bar">
+        <div class="env-widget weather-widget">
+            <span id="weather-icon">☀️</span>
+            <span id="weather-temp">24°C</span>
+            <span id="weather-desc">Sunny</span>
+        </div>
+        <div class="env-widget time-widget">
+            <span id="current-date">Apr 20, 2026</span>
+            <span id="current-time-clock">10:45 AM</span>
+        </div>
+        <div class="activity-selector">
+            <select id="activity-select" class="glass-select">
+                <option value="none">Normal Activity</option>
+                <option value="focus">Focusing (Headphones)</option>
+                <option value="workout">Workout (Moving)</option>
+            </select>
+        </div>
+        <div class="party-mode-container">
+            <label class="switch">
+                <input type="checkbox" id="party-mode-toggle">
+                <span class="slider round"></span>
+            </label>
+            <span>PARTY MODE</span>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- 1. Biometric Mood Analysis Engine (Left) -->
+        <aside class="biometric-engine">
+            <header class="engine-header">
+                <h1>MoodMelody</h1>
+                <div class="header-controls">
+                    <button id="open-camera-btn" class="icon-btn highlight" title="Open Camera">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </button>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span id="engine-status">INITIALIZING...</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="viewfinder-container hidden">
+                <video id="webcam" autoplay playsinline muted></video>
+                <div class="scanning-overlay">
+                    <div class="scan-frame"></div>
+                    <div class="scan-line"></div>
+                    <div class="scan-grid"></div>
+                </div>
+                <canvas id="overlay"></canvas>
+                <div class="viewfinder-controls">
+                    <button id="toggle-landmarks" class="icon-btn" title="Toggle Facial Landmarks">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3 4-3 9-3 9 1.34 9 3z"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+                    </button>
+                    <button id="close-camera-btn" class="icon-btn danger" title="Close Camera">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mood-result-panel">
+                <div class="mood-badge-group">
+                    <div class="mood-badge" id="current-mood-badge">
+                        <span class="label">Mood Detected:</span>
+                        <span class="value" id="mood-value">WAITING...</span>
+                    </div>
+                    <div class="micro-expressions" id="micro-expressions">
+                        <!-- Confidence bars will be injected here -->
+                    </div>
+                </div>
+                <div id="lock-progress-container" class="lock-progress-container hidden">
+                    <span class="label">Locking Mood in...</span>
+                    <div class="lock-progress-bar">
+                        <div id="lock-progress-fill" class="lock-progress-fill"></div>
+                    </div>
+                </div>
+                <div id="mood-locked-badge" class="mood-locked-badge hidden">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+                    MOOD LOCKED
+                </div>
+                <div class="confidence-meter">
+                    <div class="meter-bar" id="confidence-bar" style="width: 0%"></div>
+                    <span id="confidence-percentage" class="confidence-percentage">0%</span>
+                </div>
+            </div>
+
+            <div class="manual-override">
+                <button id="reset-engine-btn" class="glass-btn secondary-btn">Reset Analysis</button>
+                <button id="manual-mood-btn" class="glass-btn">Manually Select Mood</button>
+                <div id="mood-options" class="mood-options hidden">
+                    <button data-mood="happy">Happy</button>
+                    <button data-mood="sad">Sad</button>
+                    <button data-mood="angry">Angry</button>
+                    <button data-mood="neutral">Neutral</button>
+                    <button data-mood="surprise">Surprise</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 2. Dynamic Playlist Generation (Right) -->
+        <main class="playlist-generation" id="main-playlist-view">
+            <header class="playlist-header">
+                <div class="header-top">
+                    <h2 id="contextual-title">Upbeat & Energetic</h2>
+                    <div class="language-selector">
+                        <select id="language-select" class="glass-select">
+                            <option value="english">English</option>
+                            <option value="hindi">Hindi</option>
+                            <option value="spanish">Spanish</option>
+                            <option value="french">French</option>
+                            <option value="japanese">Japanese</option>
+                            <option value="korean">Korean</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="discovery-controls">
+                    <div class="mood-shift-container">
+                        <span class="slider-label">Mood Journey:</span>
+                        <div class="slider-wrapper">
+                            <span class="tag">Stay</span>
+                            <input type="range" id="mood-shift-slider" min="0" max="100" value="0" class="mood-slider">
+                            <span class="tag">Shift</span>
+                        </div>
+                    </div>
+                    <div class="genre-filters">
+                        <button class="filter-btn active" data-genre="pop">Pop</button>
+                        <button class="filter-btn" data-genre="rock">Rock</button>
+                        <button class="filter-btn" data-genre="dance">Dance</button>
+                        <button class="filter-btn" data-genre="chill">Chill</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="track-list" id="track-list">
+                <!-- Tracks will be injected here -->
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Curating your playlist...</p>
+                </div>
+            </div>
+            
+            <section class="history-section">
+                <div class="history-header">
+                    <h3>Insights & History</h3>
+                    <div class="history-tabs">
+                        <button class="tab-btn active" data-tab="timeline">Timeline</button>
+                        <button class="tab-btn" data-tab="analytics">Genre Heatmap</button>
+                    </div>
+                </div>
+                <div class="history-content">
+                    <div id="timeline-tab" class="tab-content active">
+                        <div class="timeline-grid">
+                            <div class="chart-container">
+                                <canvas id="historyChart"></canvas>
+                            </div>
+                            <div id="mood-history-list" class="mood-history-list">
+                                <div class="history-placeholder">Scanning for initial data...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="analytics-tab" class="tab-content">
+                        <div class="analytics-grid">
+                            <div class="heatmap-container">
+                                <canvas id="genreHeatmap"></canvas>
+                            </div>
+                            <div class="bio-sync-container">
+                                <div id="bio-sync-badge" class="bio-sync-badge">
+                                    <span class="heart-rate-icon">❤️</span>
+                                    <div class="bpm-info">
+                                        <div id="bpm-value" class="bpm-value">--</div>
+                                        <div class="bpm-label">BPM (Simulated)</div>
+                                    </div>
+                                    <div class="bio-status">WEARABLE CONNECTED</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 2.5 Profile/Favorites View (Right - Hidden by default) -->
+        <main class="playlist-generation hidden" id="profile-favorites-view">
+            <header class="playlist-header">
+                <div class="header-top">
+                    <h2>Your Favorites</h2>
+                </div>
+            </header>
+
+            <div class="track-list" id="favorites-track-list">
+                <div class="empty-state">
+                    <p>No favorite songs yet. Like a track to see it here!</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- 3. Player & Navigation Bar (Bottom) -->
+        <footer class="bottom-controls">
+            <!-- Now Playing Bar -->
+            <div id="now-playing-bar" class="now-playing-bar hidden">
+                <div class="active-track-info">
+                    <div class="visualizer-container">
+                        <canvas id="audio-visualizer"></canvas>
+                        <img id="player-album-art" src="" alt="Album Art">
+                    </div>
+                    <div class="track-meta">
+                        <div id="player-track-title" class="title">No Song Selected</div>
+                        <div id="player-track-artist" class="artist">Select a track to play</div>
+                    </div>
+                </div>
+                
+                <div class="player-controls-center">
+                    <div class="playback-btns">
+                        <button class="control-btn" id="prev-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                        </button>
+                        <button class="control-btn play-main-btn" id="main-play-btn">
+                            <svg class="play-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                            <svg class="pause-icon hidden" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <button class="control-btn" id="next-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                        </button>
+                    </div>
+                    <div class="progress-container">
+                        <span id="current-time">0:00</span>
+                        <div class="progress-bar" id="player-progress-bar">
+                            <div id="player-progress-fill" class="progress-fill"></div>
+                        </div>
+                        <span id="total-time">0:00</span>
+                    </div>
+                </div>
+
+                <div class="player-actions-right">
+                    <button class="utility-btn" id="player-like-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="like-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                    <a id="spotify-link" href="#" target="_blank" class="utility-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.646 14.354c-.19.191-.497.191-.688 0-2.484-2.485-6.264-2.485-8.748 0-.191.191-.498.191-.688 0-.191-.19-.191-.497 0-.688 2.863-2.863 7.262-2.863 10.124 0 .191.191.191.498 0 .688z"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+            <button class="nav-item active" id="nav-home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <span>Home</span>
+            </button>
+            <button class="nav-item">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Search</span>
+            </button>
+            <button class="nav-item">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M9 20v-10M15 20v-4M18 20V4M6 20v-8"/></svg>
+                <span>Library</span>
+            </button>
+            <button class="nav-item" id="nav-profile">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
